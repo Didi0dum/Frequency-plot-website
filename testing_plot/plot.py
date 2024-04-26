@@ -23,7 +23,8 @@ a = uart_mcu.read(272)
 print(f'{a}') 
 '''
 
-N = 272
+header_size = 17
+N = 256
 
 fig = plt.figure(figsize=(12,6))
 ax1 = plt.subplot(111)
@@ -32,15 +33,24 @@ fft_values = np.zeros(N)
 fmt = "%df"% (N) #format for unpack function (64f)
 
 
-'''def read_uart():
+def read_uart():
     global fft_values
+    global header
+    i = 0
     print("running thread")
     # reference string (">>>>") to indicate the end of the data packet
-    while True:
-        data_uart = uart_mcu.read(N)
+    while i < 1:
+        header = uart_mcu.read(header_size)
+        print(f'header: {header}')
+        data_uart = uart_mcu.read(N * 4 + 4)
         # convert the data to float
         if data_uart.__len__() == N * 4 + 4:
-            fft_values = struct.unpack(fmt, np.flip(data_uart[0:(N * 4)])) '''
+            fft_values = struct.unpack(fmt, np.flip(data_uart[0:(N * 4)]))
+            print(f'values: {fft_values}')
+        i = i + 1
+
+
+read_uart()
 
 #plt.show()
 

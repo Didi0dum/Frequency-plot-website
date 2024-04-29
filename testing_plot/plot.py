@@ -19,81 +19,75 @@ uart_mcu = serial.Serial('/dev/cu.usbserial-A900D9PH', 115200, parity=serial.PAR
    stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS)
 
 '''#test read of package
-a = uart_mcu.read(272)
-print(f'{a}') 
-'''
+a = uart_mcu.read(280)
+print(f'{a}')'''
 
-header_size = 17
-N = 256
+header_size = 16
+tail_size = 8
+N = 64
+whole_packet = 280
 
 fig = plt.figure(figsize=(12,6))
-ax1 = plt.subplot(111)
-theta = np.linspace(0, 2*np.pi, N)
+theta = []
+for i in range(64):
+    theta.append(i)
 fft_values = np.zeros(N)
-fmt = "%df"% (N) #format for unpack function (64f)
+fmt = "%df"% (N) #format for unpack function (256b of uart fft info in this cas)
+
 
 
 def read_uart():
     global fft_values
     global header
-    i = 0
+    global tail
     print("running thread")
     # reference string (">>>>") to indicate the end of the data packet
+    i = 0
     while i < 1:
-        header = uart_mcu.read(header_size)
+        '''data_uart = uart_mcu.read(whole_packet)
+        print(f'{data_uart}')
+        split = [data_uart[i] for i in range (0, len(data_uart))]
+        header = [split[i] for i in range (0, header_size)]
+        fft_values = [split[i] for i in range (16, N)]
+        tail = [split[i] for i in range (272, tail_size)]
+        header = bytes(header)
+        fft_values = bytes(fft_values)
+        tail = bytes(tail)
         print(f'header: {header}')
-        data_uart = uart_mcu.read(N * 4 + 4)
+        print(f'values: {fft_values}')
+        print(f'tail: {tail}')'''
+
+        #header = uart_mcu.read(header_size)
+        #print(f'header: {header}')
+        data_uart = uart_mcu.read(N * 4)
+        #tail = uart_mcu.read(tail_size)
+        #print(f'tail:{tail}')
         # convert the data to float
-        if data_uart.__len__() == N * 4 + 4:
+
+        if data_uart.__len__() == N * 4:
             fft_values = struct.unpack(fmt, np.flip(data_uart[0:(N * 4)]))
             print(f'values: {fft_values}')
         i = i + 1
 
 
+# animation function to update the plot
+'''def plot_animation(i):
+    global fft_values
+    # clearing the figure
+    ax1.clear()
+    #ax1.set_rscale('symlog')
+    ax1.set_rlim(0, 2500)
+    ax1.plot(theta, fft_values, '.-')
+
+ani = FuncAnimation(fig, plot_animation, frames= 100, interval = 10, blit=False)'''
+
 read_uart()
 
-#plt.show()
+ax1 = plt.plot(theta, fft_values, '.-')
 
-
-'''Fs = 2000  # sampling freq
-tstep = 1/Fs
-f0 = 100
-N = int(10 * Fs / f0)
-
-t = np.linspace(0, (N -1)*tstep, N)
-fstep = Fs/N
-f = np.linspace(0, (N - 1)*fstep, N)
-
-y = 1 * np.sin(2 * np.pi * f0 * t)
-
-X = np.fft.fft(y)
-X_mag = np.abs(X) / N
-
-f_plot = f[0:int(N/2+1)]
-x_mag_plot = 2 * X_mag[0:int(N/2+1)]
-x_mag_plot[0] = x_mag_plot[0] / 2
-
-
-fig, ax2 = plt.subplots(nrows=1, ncols=1)
-#ax1.plot(t, y, '.-')
-ax2.plot(f_plot, x_mag_plot, '.-')
 plt.show()
-t = np.linspace(0, (N -1)*tstep, N)
-fstep = Fs/N
-f = np.linspace(0, (N - 1)*fstep, N)
 
-y = 1 * np.sin(2 * np.pi * f0 * t)
-
-X = np.fft.fft(y)
-X_mag = np.abs(X) / N
-
-f_plot = f[0:int(N/2+1)]
-x_mag_plot = 2 * X_mag[0:int(N/2+1)]
-x_mag_plot[0] = x_mag_plot[0] / 2
-
-
-#fig, [ax1, ax2] = plt.subplots(nrows=2, ncols=1)
-#ax1.plot(t, y, '.-')
-ax2.plot(f_plot, x_mag_plot, '.-')
-plt.show()'''
-
+'''if __name__ == "__main__":
+    t1 = Thread(target=read_uart, daemon=True)
+    t1.start()
+    plt.show()'''

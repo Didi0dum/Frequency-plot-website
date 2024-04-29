@@ -15,6 +15,7 @@ for p in port:
     print(f'Serial: {p.serial_number}')
     print(f'Pid: {p.pid}') '''
 
+#init of uart
 uart_mcu = serial.Serial('/dev/cu.usbserial-A900D9PH', 115200, parity=serial.PARITY_NONE, \
    stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS)
 
@@ -29,11 +30,14 @@ whole_packet = 280
 
 fig = plt.figure(figsize=(12,6))
 ax1 = plt.subplot(111)
-theta = []
+
+#init ot x_axis 
+x_axis_samples = []
 for i in range(64):
-    theta.append(i)
+    x_axis_samples.append(i)
+
 fft_values = np.zeros(N)
-fmt = "%df"% (N) #format for unpack function (64b of uart fft info in this cas)
+fmt = "%df"% (N) #format for unpack function (64b of uart fft info in this case)
 
 
 
@@ -42,8 +46,6 @@ def read_uart():
     global header
     global tail
     print("running thread")
-    # reference string (">>>>") to indicate the end of the data packet
-    i = 0
     while True:
         '''data_uart = uart_mcu.read(whole_packet)
         print(f'{data_uart}')
@@ -58,17 +60,13 @@ def read_uart():
         print(f'values: {fft_values}')
         print(f'tail: {tail}')'''
 
-        #header = uart_mcu.read(header_size)
         #print(f'header: {header}')
         data_uart = uart_mcu.read(N * 4)
-        #tail = uart_mcu.read(tail_size)
-        #print(f'tail:{tail}')
         # convert the data to float
         if data_uart.__len__() == N * 4:
             fft_values = struct.unpack(fmt, np.flip(data_uart[0:(N * 4)]))
             print(f'values: {fft_values}')
-            print(f'values: {fft_values}')
-
+        
 
 # animation function to update the plot
 def plot_animation(i):
@@ -76,15 +74,10 @@ def plot_animation(i):
     # clearing the figure
     ax1.clear()
     #ax1.set_rscale('symlog')
-    ax1.plot(theta, fft_values, '.-')
+    #updating the figure
+    ax1.plot(x_axis_samples, fft_values, '.-')
 
 ani = FuncAnimation(fig, plot_animation, frames= 100, interval = 10, blit=False)
-
-#read_uart()
-
-#ax1 = plt.plot(theta, fft_values, '.-')
-
-#plt.show()
 
 if __name__ == "__main__":
     t1 = Thread(target=read_uart, daemon=True)

@@ -40,7 +40,6 @@ fft_values = np.zeros(N)
 fmt = "%df"% (N) #format for unpack function (64b of uart fft info in this case)
 
 
-
 def read_uart():
     global fft_values
     global header
@@ -59,7 +58,6 @@ def read_uart():
         print(f'header: {header}')
         print(f'values: {fft_values}')
         print(f'tail: {tail}')'''
-
         #print(f'header: {header}')
         data_uart = uart_mcu.read(N * 4)
         # convert the data to float
@@ -75,6 +73,8 @@ def plot_animation(i):
     ax1.clear()
     #ax1.set_rscale('symlog')
     #updating the figure
+    ax1.set_ylabel("kill me")
+    ax1.set_ylim(0, 10000)
     ax1.plot(x_axis_samples, fft_values, '.-')
 
 ani = FuncAnimation(fig, plot_animation, frames= 100, interval = 10, blit=False)

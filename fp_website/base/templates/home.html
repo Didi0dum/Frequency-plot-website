@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+
 {% block content %}
-home page
-{% endblock content %}
+{% if user.is_authenticated %}
+Hi {{ user.username }}!
+{% endif %}
+{% endblock %}
